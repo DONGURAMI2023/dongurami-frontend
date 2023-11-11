@@ -21,11 +21,11 @@ export type Menu = {
 };
 
 // api data type
-export type ApiResponse<T>={
-  data:T[],
-  total:number,
-  page:number,
-}
+export type ApiResponse<T> = {
+  data: T[];
+  total: number;
+  page: number;
+};
 
-export type RestuartResponse=ApiResponse<Restaurant>
-export type MenuResponse=ApiResponse<Menu>
+export type RestuartResponse = ApiResponse<Restaurant>;
+export type MenuResponse = ApiResponse<Menu>;
