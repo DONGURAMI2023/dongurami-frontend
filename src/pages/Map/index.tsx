@@ -26,6 +26,7 @@ import { userState } from "pages/Store/userState";
 import { useRecoilState } from "recoil";
 import { buildingImageMap } from "utils/map";
 import Flex from "components/Flex";
+import ImgRounded from "components/ImgRounded";
 
 declare global {
   interface Window {
@@ -406,19 +407,23 @@ const Map: React.FC = () => {
                 {dong.id === clickedDong && (
                   <Flex
                     type="verticalCenter"
-                    className="w-full justify-center h-[40vh] py-4 gap-3"
+                    className="w-full min-h-[40vh] pt-2 gap-3"
                   >
+                    <div className="mt-2"></div>
+                    <ImgRounded
+                      src={dong.user?.profile_image ?? DEFAULT_IMAGE}
+                    ></ImgRounded>
+                    <p>현재 소유중이신,</p>
+
                     <img
                       src={buildingImageMap[dong.building as TypeBuilding]}
                     ></img>
                     <p>
-                      현재 보유하고 있는{" "}
                       <span className="underline font-bold text-xl">
                         {PriceData.find((d) => d.id === dong.building)?.name}
                       </span>
-                      {"을"}
+                      을 매각하시겠습니까?
                     </p>
-                    <p>매각하시겠습니까?</p>
                     <button
                       onClick={() => {
                         alert("매각되었습니다.");
@@ -438,7 +443,46 @@ const Map: React.FC = () => {
             .filter((dong) => dong.user?.email !== user.email)
             .map((dong) => (
               <div key={dong.id}>
-                {dong.id === clickedDong && <div>매입하기</div>}
+                {dong.id === clickedDong && (
+                  <Flex
+                    type="verticalCenter"
+                    className="w-full min-h-[40vh] pt-2 gap-3"
+                  >
+                    <div className="mt-2"></div>
+                    <ImgRounded
+                      src={dong.user?.profile_image ?? DEFAULT_IMAGE}
+                    ></ImgRounded>
+                    <p>
+                      <span className="font-bold text-xl">
+                        {dong.user?.username}
+                      </span>
+                      님이 가지고 있는
+                    </p>
+
+                    <img
+                      src={buildingImageMap[dong.building as TypeBuilding]}
+                    ></img>
+                    <p>
+                      <span className="font-bold text-xl">
+                        {PriceData.find((d) => d.id === dong.building)?.name}
+                      </span>
+                      을{" "}
+                      <span className="text-xl font-bold text-red-500 underline">
+                        인수
+                      </span>
+                      하시겠습니까?
+                    </p>
+                    <button
+                      onClick={() => {
+                        alert("인수하였습니다.");
+                        window.location.reload();
+                      }}
+                      className="rounded px-4 py-2 bg-red-400 text-white hover:brightness-90 my-2"
+                    >
+                      인수하기
+                    </button>
+                  </Flex>
+                )}
               </div>
             ))}
       </BottomModal>
