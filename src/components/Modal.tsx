@@ -39,7 +39,11 @@ function Modal({
         {children && <p>{children}</p>}
 
         <ButtonGroup>
-          {onCancel && <Button onClick={onCancel}>{cancelText}</Button>}
+          {onCancel && (
+            <Button cancel={true} onClick={onCancel}>
+              {cancelText}
+            </Button>
+          )}
           {onConfirm && <Button onClick={onConfirm}>{confirmText}</Button>}
         </ButtonGroup>
       </ModalBlock>
@@ -138,7 +142,6 @@ const Title = styled.div`
 const ButtonGroup = styled.div`
   width: 50%;
   height: 30px;
-  background-color: blue;
 
   display: flex;
   justify-content: flex-end;
@@ -148,13 +151,13 @@ const ButtonGroup = styled.div`
   right: 1.2rem;
 `;
 
-const Button = styled.button`
+const Button = styled.button<{ cancel?: boolean }>`
   width: 50%;
   height: 30px;
-  background-color: red;
   border: none;
   outline: none;
   cursor: pointer;
+  background-color: ${(props) => (props.cancel ? "pink" : "green")};
   font-size: 1rem;
   font-weight: 600;
   /* 버튼들 사이 간격 */

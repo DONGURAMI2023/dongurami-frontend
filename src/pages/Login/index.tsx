@@ -4,6 +4,17 @@ import { ILoginReqInfo } from "../../model/Login";
 import Svg from "../../components/Svg";
 import KakaoLogin from "./KakaoLogin";
 import { useQuery } from "@tanstack/react-query";
+import kakaoImage from "../../assets/kakao_login_medium_wide.png";
+
+const REACT_REST_API_KEY = "3d92f7078f51f3e20afad84b56b54d79";
+const REDIRECT_URL = "http://localhost:5173/login/oauth";
+
+const kakaoURL =
+  "https://kauth.kakao.com/oauth/authorize?client_id=" +
+  REACT_REST_API_KEY +
+  "&redirect_uri=" +
+  REDIRECT_URL +
+  "&response_type=code";
 
 export default function Login() {
   const INITIAL_LOGIN_REQ_INFO: ILoginReqInfo = {
@@ -14,6 +25,11 @@ export default function Login() {
   const [loginReqInfo, setLoginReqInfo] = useState<ILoginReqInfo>(
     INITIAL_LOGIN_REQ_INFO
   );
+
+  const loginWithKakao = () => {
+    // 카카오 로그인 클릭 시
+    window.location.href = kakaoURL;
+  };
 
   const fetchLogin = async () => {
     // API 호출 또는 데이터 가져오기 로직
@@ -92,7 +108,7 @@ export default function Login() {
               </li>
             </ul>
 
-            <ul className="w-full justify-center gap-5 flex">
+            {/* <ul className="w-full justify-center gap-5 flex">
               <button>
                 <KakaoLogin></KakaoLogin>
               </button>
@@ -102,7 +118,12 @@ export default function Login() {
               <button>
                 <Svg icon="icon_btn_google"></Svg>
               </button>
-            </ul>
+            </ul> */}
+            <KakaoLoginContainer>
+              <KakaoLoginButton onClick={loginWithKakao}>
+                <img src={kakaoImage} alt="kakao" />
+              </KakaoLoginButton>
+            </KakaoLoginContainer>
           </Form>
         </MainContainer>
       </LoginContainer>
@@ -127,7 +148,7 @@ const Title = styled.h1`
   font-weight: bold;
   font-size: xx-large;
   margin-bottom: 2rem;
-  letter-spacing: 10px;
+  letter-spacing: 4px;
 `;
 
 const MainContainer = styled.main`
@@ -141,4 +162,21 @@ const Form = styled.form`
   align-items: center;
   width: 100%;
   gap: 2rem;
+`;
+
+const KakaoLoginContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`;
+
+const KakaoLoginButton = styled.button`
+  width: 100%;
+  height: 50px;
+  border-radius: 4px;
+  background-color: #fee500;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;

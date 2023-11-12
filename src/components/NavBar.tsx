@@ -1,17 +1,27 @@
 import styled from "styled-components";
 import logoImage from "../assets/logo.png";
 import { IoPersonCircleOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 function NavBar() {
+  const navigate = useNavigate();
+
+  const moveToInfo = () => {
+    navigate("/guide");
+  };
+
+  const moveToMypage = () => {
+    navigate("/mypage");
+  };
+
   return (
     <NavBarContainer>
-      <InfoContainer>
+      <InfoContainer onClick={moveToInfo}>
         <div
           style={{
             position: "relative",
             left: "4px",
-            top: "3px",
-            width: "100px",
+            width: "70px",
             fontSize: "15px",
             fontWeight: "bold",
           }}
@@ -32,7 +42,7 @@ function NavBar() {
           alt="logo"
         />
       </LogoContainer>
-      <MyPageContainer>
+      <MyPageContainer onClick={moveToMypage}>
         <IoPersonCircleOutline size="30" />
       </MyPageContainer>
     </NavBarContainer>
@@ -40,6 +50,8 @@ function NavBar() {
 }
 
 const InfoContainer = styled.div`
+  cursor: pointer;
+  width: 70px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,7 +64,8 @@ const LogoContainer = styled.div`
 `;
 
 const MyPageContainer = styled.div`
-  width: 100px;
+  cursor: pointer;
+  width: 70px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
