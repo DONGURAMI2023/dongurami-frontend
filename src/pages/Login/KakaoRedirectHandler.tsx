@@ -9,6 +9,7 @@ import {
   userImageURL,
   userName,
   userPoint,
+  userState,
 } from "pages/Store/userState";
 
 // const value = useRecoilValue(isDarkAtom);
@@ -35,10 +36,7 @@ const KakaoRedirectHandler = () => {
   const params = new URL(document.location.toString()).searchParams;
   const code = params.get("code");
 
-  const setEmail = useSetRecoilState(userEmail);
-  const setName = useSetRecoilState(userName);
-  const setImageURL = useSetRecoilState(userImageURL);
-  const setPoint = useSetRecoilState(userPoint);
+  const setUserState = useSetRecoilState(userState);
 
   // authCode넘겨주기
   const sendAuthCode = async () => {
@@ -49,13 +47,13 @@ const KakaoRedirectHandler = () => {
       });
       // 로그인 성공
       if (response) {
-        localStorage.setItem("token", response.token);
-
-        setEmail(response.email);
-        setName(response.username);
-        setImageURL(response.profile_image);
-        setPoint(response.point);
-
+        setUserState({
+          name: response.username,
+          email: response.email,
+          imageUrl: response.profile_image,
+          point: response.point,
+          token: response.token,
+        });
         navigate("/map");
       }
     } catch (e) {

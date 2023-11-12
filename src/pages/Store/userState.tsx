@@ -12,26 +12,22 @@ import { recoilPersist } from "recoil-persist";
 
 const { persistAtom } = recoilPersist();
 
-export const userPoint = atom({
-  key: "userPoint",
-  default: 0,
-  effects_UNSTABLE: [persistAtom],
-});
+interface IUserState {
+  point: number;
+  name: string;
+  email: string;
+  imageUrl: string;
+  token: string;
+}
 
-export const userEmail = atom({
-  key: "userEmail",
-  default: "",
-  effects_UNSTABLE: [persistAtom],
-});
-
-export const userImageURL = atom({
-  key: "userImageURL",
-  default: "",
-  effects_UNSTABLE: [persistAtom],
-});
-
-export const userName = atom({
-  key: "userName",
-  default: "",
+export const userState = atom<IUserState>({
+  key: "userState",
+  default: {
+    point: 0,
+    name: "",
+    email: "",
+    imageUrl: "",
+    token: "",
+  },
   effects_UNSTABLE: [persistAtom],
 });

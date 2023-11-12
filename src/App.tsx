@@ -1,6 +1,13 @@
 // import { Address, Restaurant } from "./model/Restaurant";
 // import { useState } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import Login from "./pages/Login";
 import Map from "./pages/Map";
 import Guide from "./pages/Guide";
@@ -8,40 +15,30 @@ import Mypage from "./pages/Mypage";
 import KakaoRedirectHandler from "./pages/Login/KakaoRedirectHandler";
 import Point from "pages/Mypage/Point";
 import Badge from "pages/Mypage/badge";
+import { userState } from "pages/Store/userState";
+import { useRecoilState } from "recoil";
 
-// const data: Restaurant = {
-//   name: "누나네",
-//   category: "한식",
-//   address: {
-//     city: "서울",
-//     detail: "서초구",
-//     zipcode: 12323,
-//   },
-//   menu: [
-//     { name: "김치찌개", price: 5000, category: "PASTA" },
-//     { name: "된장찌개", price: 5000, category: "PASTA" },
-//   ],
-// };
+const AuthRoutes = () => {
+  const [user] = useRecoilState(userState);
+  if (!user.token) {
+    return <Navigate to="/login" />;
+  }
+  return <Outlet />;
+};
 
 const App: React.FC = () => {
-  // const [myRestaurant, setMyRestaurant] = useState<Restaurant>(data);
-  // const changeAddress = (address: Address) => {
-  //   setMyRestaurant({ ...myRestaurant, address: address });
-  // };
-  // const showBestMenuName = (name: string) => {
-  //   return name;
-  // };
-
   return (
     <Routes>
       <Route path="/" element={<Test />} />
       <Route path="/login" element={<Login />} />
       <Route path="/login/oauth" element={<KakaoRedirectHandler />} />
-      <Route path="/guide" element={<Guide />} />
-      <Route path="/map" element={<Map />} />
-      <Route path="/mypage" element={<Mypage />} />
-      <Route path="/mypage/point" element={<Point />} />
-      <Route path="/mypage/badge" element={<Badge />} />
+      <Route path="/" element={<AuthRoutes />}>
+        <Route path="/guide" element={<Guide />} />
+        <Route path="/map" element={<Map />} />
+        <Route path="/mypage" element={<Mypage />} />
+        <Route path="/mypage/point" element={<Point />} />
+        <Route path="/mypage/badge" element={<Badge />} />
+      </Route>
     </Routes>
   );
 };

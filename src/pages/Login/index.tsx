@@ -4,6 +4,8 @@ import styled from "styled-components";
 import { ILoginReqInfo } from "../../model/Login";
 // import { useQuery } from "@tanstack/react-query";
 import kakaoImage from "../../assets/kakao_login_medium_wide.png";
+import { userState } from "pages/Store/userState";
+import { useRecoilState } from "recoil";
 
 const REACT_REST_API_KEY = "3d92f7078f51f3e20afad84b56b54d79";
 const REDIRECT_URL = "http://localhost:5173/login/oauth";
@@ -17,6 +19,7 @@ const kakaoURL =
 
 export default function Login() {
   const navigate = useNavigate();
+  const [user] = useRecoilState(userState);
 
   const INITIAL_LOGIN_REQ_INFO: ILoginReqInfo = {
     username: "",
@@ -34,8 +37,7 @@ export default function Login() {
 
   // token있으면 로그인 상태로
   useEffect(() => {
-    const TOKEN = localStorage.getItem("token");
-    if (TOKEN) {
+    if (user.token) {
       navigate("/map");
     }
   }, [navigate]);
