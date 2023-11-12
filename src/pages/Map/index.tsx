@@ -15,29 +15,7 @@ import towerImage from "../../assets/icon_tower.svg";
 import castleImage from "../../assets/icon_castle.svg";
 import buildingImage from "../../assets/icon_building.svg";
 import Svg from "components/Svg";
-
-interface IPolygonMetaData {
-  id: number;
-}
-interface IPolygonCreateData {
-  map: any;
-  path: any[];
-  strokeWeight: number;
-  strokeColor: string;
-  strokeOpacity: number;
-  fillColor: string;
-  fillOpacity: number;
-}
-
-interface IPolygonData {
-  metaData: IPolygonMetaData;
-  createData: IPolygonCreateData;
-}
-
-interface IPolygon {
-  polygonDOM: any;
-  polygonMetaData: IPolygonMetaData;
-}
+import { IPolygon, IPolygonData, IPolygonCreateData } from "model/Map";
 
 declare global {
   interface Window {
@@ -154,21 +132,23 @@ const Map: React.FC = () => {
           "click",
           function (e: any) {
             // 동 이름 정보 불러오기
-            if (!bottomModal) setDetailAddr("");
-            searchDetailAddrFromCoords(
-              e.latLng,
-              function (result: any, status: any) {
-                if (status === kakao.maps.services.Status.OK) {
-                  setDetailAddr(
-                    (_) =>
-                      result[0]?.address?.address_name?.split(" ")[2] ??
-                      "금은동"
-                  );
+            if (!bottomModal) {
+              setDetailAddr((_) => "");
+              searchDetailAddrFromCoords(
+                e.latLng,
+                function (result: any, status: any) {
+                  if (status === kakao.maps.services.Status.OK) {
+                    setDetailAddr(
+                      (_) =>
+                        result[0]?.address?.address_name?.split(" ")[2] ??
+                        "금은동"
+                    );
+                  }
                 }
-              }
-            );
-            // 동 자세한 정보 불러오기
+              );
+            }
 
+            // 동 자세한 정보 불러오기
             kakao.maps.event.preventMap();
             setBottomModal((prev) => !prev);
             setClickedDong(polygon.polygonMetaData.id);
@@ -262,30 +242,31 @@ const Map: React.FC = () => {
             />
           )}
         </NameWrapper>
-        {notPurchasedDongData.map((dong) => (
-          <div key={dong.id}>
-            {dong.id === clickedDong && (
-              <PriceContainer>
-                {PriceData.map((item, index) => (
-                  <PriceBlock key={index}>
-                    <ImageContainer>
-                      <img src={item.image} alt={item.name} />
-                    </ImageContainer>
-                    <PriceNameContainer>
-                      <Name>{item.name} :</Name>
-                      <Point>
-                        {Math.floor(dong.price * item.multiplier)} point
-                      </Point>
-                    </PriceNameContainer>
-                    <ButtonContainer>
-                      <Button onClick={showPurchaseModal}>구매</Button>
-                    </ButtonContainer>
-                  </PriceBlock>
-                ))}
-              </PriceContainer>
-            )}
-          </div>
-        ))}
+        {detailAddr &&
+          notPurchasedDongData.map((dong) => (
+            <div key={dong.id}>
+              {dong.id === clickedDong && (
+                <PriceContainer>
+                  {PriceData.map((item, index) => (
+                    <PriceBlock key={index}>
+                      <ImageContainer>
+                        <img src={item.image} alt={item.name} />
+                      </ImageContainer>
+                      <PriceNameContainer>
+                        <Name>{item.name} :</Name>
+                        <Point>
+                          {Math.floor(dong.price * item.multiplier)} point
+                        </Point>
+                      </PriceNameContainer>
+                      <ButtonContainer>
+                        <Button onClick={showPurchaseModal}>구매</Button>
+                      </ButtonContainer>
+                    </PriceBlock>
+                  ))}
+                </PriceContainer>
+              )}
+            </div>
+          ))}
       </BottomModal>
       <Modal
         title="땅을 구매 하시겠습니까?"
