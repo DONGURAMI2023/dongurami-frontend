@@ -118,7 +118,7 @@ const ModalBlock = styled.div<{
   height?: string;
 }>`
   z-index: 4;
-  width: 250px;
+  width: 270px;
   height: 150px;
 
   padding: 1rem;
@@ -136,7 +136,7 @@ const ModalBlock = styled.div<{
 
 const Title = styled.div`
   font-weight: 500;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 `;
 
 const ButtonGroup = styled.div`
@@ -154,12 +154,17 @@ const ButtonGroup = styled.div`
 const Button = styled.button<{ cancel?: boolean }>`
   width: 50%;
   height: 30px;
+  border-radius: 6px;
   border: none;
   outline: none;
   cursor: pointer;
-  background-color: ${(props) => (props.cancel ? "pink" : "green")};
+  background-color: ${(props) => (props.cancel ? "pink" : "lightgreen")};
   font-size: 1rem;
   font-weight: 600;
+  &:hover {
+    filter: brightness(0.9);
+  }
+
   /* 버튼들 사이 간격 */
   & + & {
     margin-left: 0.5rem;

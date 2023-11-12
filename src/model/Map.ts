@@ -20,3 +20,9 @@ export interface IPolygon {
   polygonDOM: any;
   polygonMetaData: IPolygonMetaData;
 }
+
+export interface IPriceData {
+  image: any;
+  name: string;
+  multiplier: number;
+}
