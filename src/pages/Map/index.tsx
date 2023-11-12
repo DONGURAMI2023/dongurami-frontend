@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../components/NavBar";
 import { DONG_DATA } from "../../consts/map";
 import styled from "styled-components";
@@ -12,6 +14,8 @@ import flagImage from "../../assets/icon_flag.svg";
 import towerImage from "../../assets/icon_tower.svg";
 import castleImage from "../../assets/icon_castle.svg";
 import buildingImage from "../../assets/icon_building.svg";
+import Svg from "components/Svg";
+import { IPolygon, IPolygonData, IPolygonCreateData } from "model/Map";
 
 declare global {
   interface Window {
@@ -29,43 +33,35 @@ const PriceData = [
 
 const { kakao } = window;
 
+type TypeUser = any;
+interface IAreaData {
+  id: number;
+  user: TypeUser | null;
+  price: number;
+  building: number;
+}
+
 const Map: React.FC = () => {
   const [map, setMap] = useState<null | any>(null);
   const [bottomModal, setBottomModal] = useState<boolean>(false);
   const [purchaseModal, setPurchaseModal] = useState<boolean>(false);
-  const [detailAddr, setDetailAddr] = useState<string>("");
-  const [notPurchasedDongData, setNotPurchasedDongData] = useState<any[]>([]);
   const [purchasedDongData, setPurchasedDongData] = useState<any[]>([]);
   const [clickedDong, setClickedDong] = useState<any>(null);
-
-  // 구입된 동 데이터를 배열로 저장
+  const [detailAddr, setDetailAddr] = useState<string>("");
+  const [notPurchasedDongData, setNotPurchasedDongData] = useState<any[]>([]);
+  const polygons = useRef<IPolygon[]>([]);
 
   // 주소-좌표 변환 객체를 생성합니다
   const geocoder = new kakao.maps.services.Geocoder();
 
-  // dondData 가져오기
-  // const getDongData = async () => {
-  //   const { isPending, isError, data, error } = useQuery({
-  //     queryKey: ["dongData"],
-  //     queryFn: () => getApi({ url: "area" }),
-  //   });
-  //   if (data) {
-  //     setNotPurchasedDongData(
-  //       data.result.filter((dong: any) => dong.user === null)
-  //     );
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   getDongData();
-  // }, []);
-
   const getDongData = async () => {
     try {
-      const { result } = await getApi({ url: "area" });
-      console.log(result);
-      setNotPurchasedDongData(result.filter((dong: any) => dong.user === null));
-      setPurchasedDongData(result.filter((dong: any) => dong.user !== null));
+      const { result: areaData } = await getApi<IAreaData[]>({ url: "area" });
+
+      setNotPurchasedDongData(areaData.filter((dong) => dong.user === null));
+      setPurchasedDongData(
+        areaData.filter((dong: IAreaData) => dong.user !== null)
+      );
     } catch (e) {
       console.log(e);
     }
@@ -90,22 +86,6 @@ const Map: React.FC = () => {
     setMap(createdMap);
   }, []);
 
-  const showBottomModal = () => {
-    if (!bottomModal) {
-      console.log("true로 바꿉니다.");
-      setBottomModal(true);
-    }
-  };
-
-  const closeBottomModal = () => {
-    if (bottomModal) {
-      console.log("false로 바꿉니다.");
-      setBottomModal(false);
-    }
-  };
-
-  console.log("현재 상태는", bottomModal);
-
   const showPurchaseModal = () => {
     if (!purchaseModal) {
       setPurchaseModal(true);
@@ -119,12 +99,10 @@ const Map: React.FC = () => {
   };
 
   const purchaseDong = () => {
-    console.log("구입");
     closePurchaseModal();
   };
 
   const cancelPurchase = () => {
-    console.log("취소");
     closePurchaseModal();
   };
 
@@ -135,86 +113,105 @@ const Map: React.FC = () => {
 
   // 지도에 폴리곤으로 동 구분
   useEffect(() => {
-    const drawDong = () => {
-      DONG_DATA.forEach((dong: any) => {
-        const poloygonPath: any[] = [];
-
-        dong.coordinates[0][0].forEach((coordinate: any) => {
-          poloygonPath.push(
-            new kakao.maps.LatLng(coordinate[1], coordinate[0])
-          );
+    const drawDongs = () => {
+      const applyMouseoverListener = (polygon: any) => {
+        kakao.maps.event.addListener(polygon, "mouseover", function () {
+          polygon.setOptions({ fillColor: "#8EAE57" });
         });
+      };
 
-        const polygon = new kakao.maps.Polygon({
+      const applyMouseoutListener = (polygon: any) => {
+        kakao.maps.event.addListener(polygon, "mouseout", function () {
+          polygon.setOptions({ fillColor: "#fff" });
+        });
+      };
+
+      const applyClickListener = (polygon: IPolygon) => {
+        kakao.maps.event.addListener(
+          polygon.polygonDOM,
+          "click",
+          function (e: any) {
+            // 동 이름 정보 불러오기
+            if (!bottomModal) {
+              setDetailAddr((_) => "");
+              searchDetailAddrFromCoords(
+                e.latLng,
+                function (result: any, status: any) {
+                  if (status === kakao.maps.services.Status.OK) {
+                    setDetailAddr(
+                      (_) =>
+                        result[0]?.address?.address_name?.split(" ")[2] ??
+                        "금은동"
+                    );
+                  }
+                }
+              );
+            }
+
+            // 동 자세한 정보 불러오기
+            kakao.maps.event.preventMap();
+            setBottomModal((prev) => !prev);
+            setClickedDong(polygon.polygonMetaData.id);
+          }
+        );
+      };
+
+      // set polygon datas needed for drawing polygon on the map
+      const polygonDatas: IPolygonData[] = DONG_DATA.map((dong) => {
+        const polygonPath = dong.coordinates.map(
+          (coordinate) => new kakao.maps.LatLng(coordinate[1], coordinate[0])
+        );
+
+        const polygonCreateData: IPolygonCreateData = {
           map: map,
-          path: poloygonPath,
+          path: polygonPath,
           strokeWeight: 3,
           strokeColor: "#8EAE57",
           strokeOpacity: 0.6,
           fillColor: "#fff",
           fillOpacity: 0.1,
-        });
+        };
 
-        // 폴리곤에 mouseover 이벤트 등록하고 이벤트가 발생하면 폴리곤의 채움색을 바꿉니다.
-        kakao.maps.event.addListener(polygon, "mouseover", function () {
-          polygon.setOptions({ fillColor: "#8EAE57" });
-        });
-
-        // 폴리곤에 mouseout이벤트를 등록하고 에밴트가 발생하면 폴리곤의 채움색을 원래대로 변경합니다.
-        kakao.maps.event.addListener(polygon, "mouseout", function () {
-          polygon.setOptions({ fillColor: "#fff" });
-        });
-
-        // 폴리곤에 click 이벤트를 등록하고 맵의 클릭이벤트를 없애고, 구입 정보를 모달로 띄웁니다.
-        // 백엔드에서 가져온 이미 구입된 동데이터의 넘버와 비교해서 같으면 구입 정보 대신, 인수 정보가 뜹니다.
-        kakao.maps.event.addListener(
-          polygon,
-          "click",
-          function (mouseEvent: any) {
-            // 동 정보 가져오는 함수
-            searchDetailAddrFromCoords(
-              mouseEvent.latLng,
-              function (result: any, status: any) {
-                if (
-                  status === kakao.maps.services.Status.OK &&
-                  result &&
-                  result[0]
-                ) {
-                  // Check if road_address and address exist before accessing their properties
-                  let addr = "";
-                  if (result[0].address) {
-                    addr += result[0].address.address_name.split(" ")[2];
-                  }
-                  setDetailAddr(addr);
-                }
-              }
-            );
-            console.log(bottomModal);
-            kakao.maps.event.preventMap();
-            setClickedDong(dong.dongNumber);
-            if (bottomModal) {
-              console.log("close");
-              closeBottomModal();
-            } else {
-              console.log("open");
-              showBottomModal();
-            }
-            console.log(dong.dongNumber);
-          }
-        );
+        return {
+          metaData: { id: dong.dongNumber },
+          createData: polygonCreateData,
+        };
       });
 
-      kakao.maps.event.addListener(map, "click", function () {
-        closeBottomModal();
+      // remove polygon first
+      if (polygons.current && polygons.current.length >= 0) {
+        polygons.current.forEach((polygon) => polygon.polygonDOM.setMap(null));
+      }
+
+      // draw polygons
+      polygons.current = polygonDatas.map((polygonData) => {
+        return {
+          polygonDOM: new kakao.maps.Polygon(polygonData.createData),
+          polygonMetaData: polygonData.metaData,
+        };
+      });
+
+      // add event listener depends on modal status
+      polygons.current.forEach((polygon) => {
+        applyMouseoverListener(polygon.polygonDOM);
+        applyMouseoutListener(polygon.polygonDOM);
+        applyClickListener(polygon);
       });
     };
 
-    if (map) {
-      drawDong();
-    }
-  }, [map, bottomModal]);
+    const applyClickMapListener = () => {
+      kakao.maps.event.addListener(
+        map,
+        "click",
+        () => bottomModal && setBottomModal(false)
+      );
+    };
 
-  console.log(notPurchasedDongData);
+    if (map) {
+      applyClickMapListener();
+      drawDongs();
+    }
+  }, [map, bottomModal, searchDetailAddrFromCoords]);
 
   return (
     <MapContainer>
@@ -232,32 +229,44 @@ const Map: React.FC = () => {
           padding: 0,
         }}
       ></div>
+
+      {/* modals */}
       <BottomModal visible={bottomModal}>
-        <DongName>{detailAddr}</DongName>
-        {notPurchasedDongData.map((dong) => (
-          <div key={dong.id}>
-            {dong.id === clickedDong && (
-              <PriceContainer>
-                {PriceData.map((item, index) => (
-                  <PriceBlock key={index}>
-                    <ImageContainer>
-                      <img src={item.image} alt={item.name} />
-                    </ImageContainer>
-                    <PriceNameContainer>
-                      <Name>{item.name} :</Name>
-                      <Point>
-                        {Math.floor(dong.price * item.multiplier)} point
-                      </Point>
-                    </PriceNameContainer>
-                    <ButtonContainer>
-                      <Button onClick={showPurchaseModal}>구매</Button>
-                    </ButtonContainer>
-                  </PriceBlock>
-                ))}
-              </PriceContainer>
-            )}
-          </div>
-        ))}
+        <NameWrapper>
+          {detailAddr ? (
+            detailAddr
+          ) : (
+            <Svg
+              icon="icon_loading_gif"
+              className="!max-w-[3rem] !max-h-[3rem]"
+            />
+          )}
+        </NameWrapper>
+        {detailAddr &&
+          notPurchasedDongData.map((dong) => (
+            <div key={dong.id}>
+              {dong.id === clickedDong && (
+                <PriceContainer>
+                  {PriceData.map((item, index) => (
+                    <PriceBlock key={index}>
+                      <ImageContainer>
+                        <img src={item.image} alt={item.name} />
+                      </ImageContainer>
+                      <PriceNameContainer>
+                        <Name>{item.name} :</Name>
+                        <Point>
+                          {Math.floor(dong.price * item.multiplier)} point
+                        </Point>
+                      </PriceNameContainer>
+                      <ButtonContainer>
+                        <Button onClick={showPurchaseModal}>구매</Button>
+                      </ButtonContainer>
+                    </PriceBlock>
+                  ))}
+                </PriceContainer>
+              )}
+            </div>
+          ))}
       </BottomModal>
       <Modal
         title="땅을 구매 하시겠습니까?"
@@ -286,7 +295,7 @@ const Button = styled.button`
   font-weight: 600;
 `;
 
-const DongName = styled.div`
+const NameWrapper = styled.div`
   margin-top: 1rem;
   font-weight: 600;
   font-size: 1.2rem;
