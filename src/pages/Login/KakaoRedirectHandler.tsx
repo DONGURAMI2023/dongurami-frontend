@@ -4,13 +4,7 @@ import { getApi } from "utils/http";
 import { useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { IUserData } from "../../model/Login";
-import {
-  userEmail,
-  userImageURL,
-  userName,
-  userPoint,
-  userState,
-} from "pages/Store/userState";
+import { userState } from "pages/Store/userState";
 
 // const value = useRecoilValue(isDarkAtom);
 // : value를 가져오기
@@ -20,16 +14,6 @@ import {
 
 // const [value, setValue] = useRecoilState(toDoState);
 // : value를 가져오고, 수정하기
-
-const REACT_REST_API_KEY = "3d92f7078f51f3e20afad84b56b54d79";
-const REDIRECT_URL = "http://localhost:5173/login/oauth";
-
-const kakaoURL =
-  "https://kauth.kakao.com/oauth/authorize?client_id=" +
-  REACT_REST_API_KEY +
-  "&redirect_uri=" +
-  REDIRECT_URL +
-  "&response_type=code";
 
 const KakaoRedirectHandler = () => {
   const navigate = useNavigate();

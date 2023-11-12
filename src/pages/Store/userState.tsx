@@ -24,6 +24,7 @@ interface IUserState {
 export const userState = atom<IUserState>({
   key: "userState",
   default: {
+    id: 0,
     point: 0,
     name: "",
     email: "",

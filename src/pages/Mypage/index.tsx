@@ -11,18 +11,17 @@ import ImgRounded from "components/ImgRounded";
 import Slider from "components/Slider";
 import ImgSquare from "components/ImgSquare";
 import { useNavigate } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { userState } from "pages/Store/userState";
 
 interface IMyPageProps {}
 
 const Mypage = ({}: IMyPageProps) => {
+  const user = useRecoilValue(userState);
   const navigate = useNavigate();
 
-  const handleClickMypageBtn = () => {
-    alert("마이페이지");
-  };
-
   const handleClickCancelBtn = () => {
-    alert("취소");
+    navigate(-1);
   };
 
   const handleClickPoint = () => {
@@ -39,7 +38,7 @@ const Mypage = ({}: IMyPageProps) => {
         hideShadow
         leftComponent={
           <Flex type="horizontalCenter" className="gap-3">
-            <IconButton onClick={() => handleClickMypageBtn()}>
+            <IconButton>
               <IoPersonCircleOutline size="24" />
             </IconButton>
             마이페이지
@@ -53,13 +52,9 @@ const Mypage = ({}: IMyPageProps) => {
       />
       <MainContainer>
         <Flex type="horizontal" className="gap-4 px-2">
-          <ImgRounded
-            src={
-              "https://media.licdn.com/dms/image/D4D03AQF54ZBQBxQFmw/profile-displayphoto-shrink_100_100/0/1691425036898?e=1704931200&v=beta&t=0mAikxLqpBM6a8kqitQ-wNW9WXMMB8RnFdPvlTZkO4M"
-            }
-          />
+          <ImgRounded src={user.imageUrl} />
           <Flex type="verticalLeft">
-            <p className="text-lg">중구의 동장 권오민님 👑</p>
+            <p className="text-lg">{user.name}님 👑</p>
             <p className="text-sm flex items-center text-gray-400 cursor-pointer hover:underline">
               기본 정보 보기 {">"}
             </p>
@@ -74,7 +69,7 @@ const Mypage = ({}: IMyPageProps) => {
           <Flex type="horizontalCenter" className="text-gray-400">
             내 포인트 | 적립내역 {">"}
           </Flex>
-          <p className="text-[36px]">3,000 POINT</p>
+          <p className="text-[36px]">{user.point} POINT</p>
         </Flex>
 
         {/* divider */}
@@ -196,7 +191,7 @@ const Mypage = ({}: IMyPageProps) => {
               <span>나의 뱃지 획득</span>
               <IoChevronForwardSharp size="24" color="gray" />
             </li>
-            <li className="w-full flex items-center justify-between font-bold pl-6 cursor-pointer py-1 hover:bg-gray-200">
+            <li className="w-full flex items-center justify-between font-bold cursor-pointer py-1 hover:bg-gray-200">
               <span>동별 포인트</span>
               <IoChevronForwardSharp size="24" color="gray" />
             </li>

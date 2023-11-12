@@ -5,18 +5,21 @@ import Flex from "components/Flex";
 import IconButton from "components/IconButton";
 import { IoPersonCircleOutline, IoClose } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { userState } from "pages/Store/userState";
 
 const mockData = [
   { 중구: 900 },
   { 서구: 800 },
-  { 남구: 800 },
-  { 북구: 800 },
-  { 달서구: 800 },
-  { 수성구: 800 },
+  { 남구: 50 },
+  { 북구: 1700 },
+  { 달서구: 500 },
+  { 수성구: 100 },
 ];
 
 const Point = () => {
   const navigate = useNavigate();
+  const user = useRecoilValue(userState);
 
   const handleClickCancelBtn = () => {
     navigate(-1);
@@ -44,7 +47,7 @@ const Point = () => {
         <MainWrapper>
           <PointContainer>
             <MainTitle>포인트</MainTitle>
-            <SubTitle>1000 POINT</SubTitle>
+            <SubTitle>{user.point} POINT</SubTitle>
           </PointContainer>
           <SpecificContainer>
             <ul>
@@ -67,7 +70,7 @@ const MapContainer = styled.div`
 `;
 
 const MainContainer = styled.main`
-  padding: 1.5rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
 `;
@@ -134,15 +137,21 @@ const SpecificContainer = styled.div`
       width: 100%;
       height: 40px;
       margin-bottom: 10px;
-      border-bottom: 1px solid grey;
+      border-bottom: 1px solid lightgrey;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       div {
-        width: 100%;
+        width: 80%;
         height: 100%;
         font-size: 1.2rem;
         display: flex;
-        justify-content: center;
+        &:first-child {
+          justify-content: flex-start;
+        }
+
+        &:last-child {
+          justify-content: flex-end;
+        }
         align-items: center;
       }
     }
