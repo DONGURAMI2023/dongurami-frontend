@@ -7,7 +7,7 @@ import styled from "styled-components";
 import { DEAGU_CENTER_POINT } from "../../consts/map";
 import BottomModal from "../../components/BottomModal";
 import Modal from "../../components/Modal";
-import { getApi, postApi, putApi } from "utils/http";
+import { getApi, putApi } from "utils/http";
 import houseImage from "../../assets/icon_house.svg";
 import flagImage from "../../assets/icon_flag.svg";
 import towerImage from "../../assets/icon_tower.svg";
@@ -85,8 +85,14 @@ const Map: React.FC = () => {
         alert("성공적으로 구매하였습니다.");
         window.location.reload();
       } else alert("구매에 실패하였습니다.");
-    } catch (e) {
-      alert("구매중 에러가 발생했습니다.");
+    } catch (e: any) {
+      console.log(e);
+      if (e.response.status === 403) {
+        const needPoint = e.response.data.need;
+        alert(`포인트가 ${needPoint} point 부족합니다.`);
+      } else {
+        alert("구매중 에러가 발생했습니다.");
+      }
     }
     closePurchaseModal();
   };
@@ -196,16 +202,57 @@ const Map: React.FC = () => {
     };
 
     const drawDongs = () => {
-      const applyMouseoverListener = (polygon: any) => {
-        kakao.maps.event.addListener(polygon, "mouseover", function () {
-          polygon.setOptions({ fillColor: "#8EAE57" });
-        });
+      const applyBackgroundColor = (polygon: IPolygon) => {
+        const myDongs = purchasedDongData.filter(
+          (dong) => dong.user?.email === user.email
+        );
+        console.log("myDongs", myDongs);
+        const notMyDongs = purchasedDongData.filter(
+          (dong) => dong.user?.email !== user.email
+        );
+        console.log("notMyDongs", notMyDongs);
+        // 내가 가지고있는 동이라면
+        if (myDongs.find((dong) => dong.id === polygon.polygonMetaData.id)) {
+          polygon.polygonDOM.setOptions({ fillColor: "#00FF00" });
+        } else if (
+          notMyDongs.find((dong) => dong.id === polygon.polygonMetaData.id)
+        ) {
+          polygon.polygonDOM.setOptions({ fillColor: "#FF0000" });
+        }
       };
 
-      const applyMouseoutListener = (polygon: any) => {
-        kakao.maps.event.addListener(polygon, "mouseout", function () {
-          polygon.setOptions({ fillColor: "#fff" });
-        });
+      const applyMouseoverListener = (polygon: IPolygon) => {
+        kakao.maps.event.addListener(
+          polygon.polygonDOM,
+          "mouseover",
+          function () {
+            if (
+              purchasedDongData.find(
+                (dong) => dong.id === polygon.polygonMetaData.id
+              )
+            ) {
+              return;
+            }
+            polygon.polygonDOM.setOptions({ fillColor: "#8EAE57" });
+          }
+        );
+      };
+
+      const applyMouseoutListener = (polygon: IPolygon) => {
+        kakao.maps.event.addListener(
+          polygon.polygonDOM,
+          "mouseout",
+          function () {
+            if (
+              purchasedDongData.find(
+                (dong) => dong.id === polygon.polygonMetaData.id
+              )
+            ) {
+              return;
+            }
+            polygon.polygonDOM.setOptions({ fillColor: "#fff" });
+          }
+        );
       };
 
       const applyClickListener = (polygon: IPolygon) => {
@@ -275,8 +322,9 @@ const Map: React.FC = () => {
 
       // add event listener depends on modal status
       polygons.current.forEach((polygon) => {
-        applyMouseoverListener(polygon.polygonDOM);
-        applyMouseoutListener(polygon.polygonDOM);
+        applyMouseoverListener(polygon);
+        applyMouseoutListener(polygon);
+        applyBackgroundColor(polygon);
         applyClickListener(polygon);
       });
     };
@@ -360,13 +408,31 @@ const Map: React.FC = () => {
               )}
             </div>
           ))}
+
+        {detailAddr &&
+          purchasedDongData
+            .filter((dong) => dong.user?.email === user.email)
+            .map((dong) => (
+              <div key={dong.id}>
+                {dong.id === clickedDong && <div>매각하기</div>}
+              </div>
+            ))}
+
+        {detailAddr &&
+          purchasedDongData
+            .filter((dong) => dong.user?.email !== user.email)
+            .map((dong) => (
+              <div key={dong.id}>
+                {dong.id === clickedDong && <div>매입하기</div>}
+              </div>
+            ))}
       </BottomModal>
       <Modal
         title={`🏠 ${purchaseModal?.name}${
           purchaseModal?.name === "랜드마크" ? "를" : "을"
         } 구매하시겠습니까?`}
         visible={!!purchaseModal}
-        onConfirm={() => purchaseDong(purchaseModal)}
+        onConfirm={() => purchaseDong()}
         onCancel={cancelPurchase}
         confirmText="확인"
         cancelText="취소"
