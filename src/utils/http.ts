@@ -28,8 +28,8 @@ export const getApi = async <T>({
   url,
   headers,
   params,
-}: ApiParams): Promise<{ result: T }> => {
-  const response = await axios.get<{ result: T }>(`${BACKEND_URL}${url}`, {
+}: ApiParams): Promise<T> => {
+  const response = await axios.get<T>(`${BACKEND_URL}${url}`, {
     headers,
     params,
   } as AxiosRequestConfig);

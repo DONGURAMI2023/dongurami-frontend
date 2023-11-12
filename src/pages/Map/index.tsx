@@ -88,7 +88,9 @@ const Map: React.FC = () => {
 
   const getDongData = async () => {
     try {
-      const { result: areaData } = await getApi<IAreaData[]>({ url: "area" });
+      const { result: areaData } = await getApi<{ result: IAreaData[] }>({
+        url: "area",
+      });
       setNotPurchasedDongData(areaData.filter((dong) => dong.user === null));
       setPurchasedDongData(
         areaData.filter((dong: IAreaData) => dong.user !== null)

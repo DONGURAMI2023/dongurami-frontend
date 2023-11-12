@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { getApi } from "utils/http";
 import { useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
+import { IUserData } from "../../model/Login";
 import {
   userEmail,
   userImageURL,
@@ -42,7 +43,7 @@ const KakaoRedirectHandler = () => {
   // authCode넘겨주기
   const sendAuthCode = async () => {
     try {
-      const response = await getApi({
+      const response = await getApi<IUserData>({
         url: `users/kakao/callback`,
         params: { code: code },
       });
