@@ -7,12 +7,13 @@ import styled from "styled-components";
 import { DEAGU_CENTER_POINT } from "../../consts/map";
 import BottomModal from "../../components/BottomModal";
 import Modal from "../../components/Modal";
-import { getApi } from "utils/http";
+import { getApi, putApi } from "utils/http";
 import houseImage from "../../assets/icon_house.svg";
 import flagImage from "../../assets/icon_flag.svg";
 import towerImage from "../../assets/icon_tower.svg";
 import castleImage from "../../assets/icon_castle.svg";
 import buildingImage from "../../assets/icon_building.svg";
+import logo from "../../assets/logo.png";
 import Svg from "components/Svg";
 import {
   IPolygon,
@@ -22,6 +23,15 @@ import {
   IAreaData,
   TypeBuilding,
 } from "model/Map";
+import { userState } from "pages/Store/userState";
+import { useRecoilState } from "recoil";
+import { buildingImageMap } from "utils/map";
+import Flex from "components/Flex";
+import ImgRounded from "components/ImgRounded";
+import CustomNav from "components/CustomNav";
+import IconButton from "components/IconButton";
+import { IoHelp, IoPersonCircleOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -40,6 +50,8 @@ const PriceData: IPriceData[] = [
 const { kakao } = window;
 
 const Map: React.FC = () => {
+  const navigate = useNavigate();
+
   const [map, setMap] = useState<null | any>(null);
   const [bottomModal, setBottomModal] = useState<boolean>(false);
   const [purchaseModal, setPurchaseModal] = useState<
@@ -49,6 +61,7 @@ const Map: React.FC = () => {
   const [notPurchasedDongData, setNotPurchasedDongData] = useState<IAreaData[]>(
     []
   );
+  const [user] = useRecoilState(userState);
   const [clickedDong, setClickedDong] = useState<any>(null);
   const [detailAddr, setDetailAddr] = useState<string>("");
   const polygons = useRef<IPolygon[]>([]);
@@ -56,7 +69,9 @@ const Map: React.FC = () => {
   // 주소-좌표 변환 객체를 생성합니다
   const geocoder = new kakao.maps.services.Geocoder();
 
-  const showPurchaseModal = (data: IPriceData & { price: number }) => {
+  const showPurchaseModal = (
+    data: IPriceData & { price: number; building: number }
+  ) => {
     if (!purchaseModal) {
       setPurchaseModal(data);
     }
@@ -68,7 +83,27 @@ const Map: React.FC = () => {
     }
   };
 
-  const purchaseDong = () => {
+  const purchaseDong = async (buildingId: number) => {
+    try {
+      const { result } = await putApi<{ result: string; message: string }>({
+        url: `/area/${clickedDong}/take/${user.id}`,
+        requestBody: {
+          building: buildingId,
+        },
+      });
+      if (result === "success") {
+        alert("성공적으로 구매하였습니다.");
+        window.location.reload();
+      } else alert("구매에 실패하였습니다.");
+    } catch (e: any) {
+      console.log(e);
+      if (e.response.status === 403) {
+        const needPoint = e.response.data.need;
+        alert(`포인트가 ${needPoint} point 부족합니다.`);
+      } else {
+        alert("구매중 에러가 발생했습니다.");
+      }
+    }
     closePurchaseModal();
   };
 
@@ -128,20 +163,9 @@ const Map: React.FC = () => {
         buildingType: TypeBuilding,
         imageUrl: string = DEFAULT_IMAGE
       ) => {
-        const buildingImage =
-          buildingType === 0
-            ? "icon_flag.svg"
-            : buildingType === 1
-            ? "icon_house.svg"
-            : buildingType === 2
-            ? "icon_building.svg"
-            : buildingType === 4
-            ? "icon_castle.svg"
-            : "icon_tower.svg";
-
         return `
         <div class="flex flex-col items-center w-[68px] gap-1 h-auto scale-[65%]">
-            <img class='w-[40px] h-[40px]' src="${buildingImage}">
+            <img class='w-[40px] h-[40px]' src="${buildingImageMap[buildingType]}">
             </img>
             <div class="w-[68px] h-[68px] flex-col items-center flex rounded-full bg-white border border-gray-300 overflow-clip p-[2px] shadow-md z-0 cursor-pointer">
               <div class="flex-col items-center flex w-full h-full rounded-full p-[2px] z-10 bg-gradient-to-tr from-yellow-400 via-red-500 to-pink-500">
@@ -177,16 +201,55 @@ const Map: React.FC = () => {
     };
 
     const drawDongs = () => {
-      const applyMouseoverListener = (polygon: any) => {
-        kakao.maps.event.addListener(polygon, "mouseover", function () {
-          polygon.setOptions({ fillColor: "#8EAE57" });
-        });
+      const applyBackgroundColor = (polygon: IPolygon) => {
+        const myDongs = purchasedDongData.filter(
+          (dong) => dong.user?.email === user.email
+        );
+        const notMyDongs = purchasedDongData.filter(
+          (dong) => dong.user?.email !== user.email
+        );
+        // 내가 가지고있는 동이라면
+        if (myDongs.find((dong) => dong.id === polygon.polygonMetaData.id)) {
+          polygon.polygonDOM.setOptions({ fillColor: "#00FF00" });
+        } else if (
+          notMyDongs.find((dong) => dong.id === polygon.polygonMetaData.id)
+        ) {
+          polygon.polygonDOM.setOptions({ fillColor: "#FF0000" });
+        }
       };
 
-      const applyMouseoutListener = (polygon: any) => {
-        kakao.maps.event.addListener(polygon, "mouseout", function () {
-          polygon.setOptions({ fillColor: "#fff" });
-        });
+      const applyMouseoverListener = (polygon: IPolygon) => {
+        kakao.maps.event.addListener(
+          polygon.polygonDOM,
+          "mouseover",
+          function () {
+            if (
+              purchasedDongData.find(
+                (dong) => dong.id === polygon.polygonMetaData.id
+              )
+            ) {
+              return;
+            }
+            polygon.polygonDOM.setOptions({ fillColor: "#8EAE57" });
+          }
+        );
+      };
+
+      const applyMouseoutListener = (polygon: IPolygon) => {
+        kakao.maps.event.addListener(
+          polygon.polygonDOM,
+          "mouseout",
+          function () {
+            if (
+              purchasedDongData.find(
+                (dong) => dong.id === polygon.polygonMetaData.id
+              )
+            ) {
+              return;
+            }
+            polygon.polygonDOM.setOptions({ fillColor: "#fff" });
+          }
+        );
       };
 
       const applyClickListener = (polygon: IPolygon) => {
@@ -232,7 +295,7 @@ const Map: React.FC = () => {
           strokeColor: "#8EAE57",
           strokeOpacity: 0.6,
           fillColor: "#fff",
-          fillOpacity: 0.1,
+          fillOpacity: 0.15,
         };
 
         return {
@@ -256,8 +319,9 @@ const Map: React.FC = () => {
 
       // add event listener depends on modal status
       polygons.current.forEach((polygon) => {
-        applyMouseoverListener(polygon.polygonDOM);
-        applyMouseoutListener(polygon.polygonDOM);
+        applyMouseoverListener(polygon);
+        applyMouseoutListener(polygon);
+        applyBackgroundColor(polygon);
         applyClickListener(polygon);
       });
     };
@@ -279,7 +343,25 @@ const Map: React.FC = () => {
 
   return (
     <MapContainer>
-      <NavBar />
+      <CustomNav
+        leftComponent={
+          <Flex type="horizontalCenter" className="gap-3">
+            <IconButton onClick={() => navigate("/mypage")}>
+              <IoPersonCircleOutline size="24" />
+            </IconButton>
+          </Flex>
+        }
+        centerComponent={
+          <Flex type="horizontalCenter" className="gap-3 h-full">
+            <img className="h-full scale-125" src={logo}></img>
+          </Flex>
+        }
+        rightComponent={
+          <IconButton onClick={() => navigate("/guide")}>
+            <IoHelp size="24" />
+          </IconButton>
+        }
+      />
       <div
         id="map"
         style={{
@@ -328,6 +410,7 @@ const Map: React.FC = () => {
                             showPurchaseModal({
                               ...item,
                               price: Math.floor(dong.price * item.multiplier),
+                              building: item.id,
                             })
                           }
                         >
@@ -340,13 +423,99 @@ const Map: React.FC = () => {
               )}
             </div>
           ))}
+
+        {detailAddr &&
+          purchasedDongData
+            .filter((dong) => dong.user?.email === user.email)
+            .map((dong) => (
+              <div key={dong.id}>
+                {dong.id === clickedDong && (
+                  <Flex
+                    type="verticalCenter"
+                    className="w-full min-h-[40vh] pt-2 gap-3"
+                  >
+                    <div className="mt-2"></div>
+                    <ImgRounded
+                      src={dong.user?.profile_image ?? DEFAULT_IMAGE}
+                    ></ImgRounded>
+                    <p>현재 소유중이신,</p>
+
+                    <img
+                      src={buildingImageMap[dong.building as TypeBuilding]}
+                    ></img>
+                    <p>
+                      <span className="underline font-bold text-xl">
+                        {PriceData.find((d) => d.id === dong.building)?.name}
+                      </span>
+                      을 매각하시겠습니까?
+                    </p>
+                    <button
+                      onClick={() => {
+                        alert("매각되었습니다.");
+                        window.location.reload();
+                      }}
+                      className="rounded px-4 py-2 bg-red-400 text-white hover:brightness-90 my-2"
+                    >
+                      매각하기
+                    </button>
+                  </Flex>
+                )}
+              </div>
+            ))}
+
+        {detailAddr &&
+          purchasedDongData
+            .filter((dong) => dong.user?.email !== user.email)
+            .map((dong) => (
+              <div key={dong.id}>
+                {dong.id === clickedDong && (
+                  <Flex
+                    type="verticalCenter"
+                    className="w-full min-h-[40vh] pt-2 gap-3"
+                  >
+                    <div className="mt-2"></div>
+                    <ImgRounded
+                      src={dong.user?.profile_image ?? DEFAULT_IMAGE}
+                    ></ImgRounded>
+                    <p>
+                      <span className="font-bold text-xl">
+                        {dong.user?.username}
+                      </span>
+                      님이 가지고 있는
+                    </p>
+
+                    <img
+                      src={buildingImageMap[dong.building as TypeBuilding]}
+                    ></img>
+                    <p>
+                      <span className="font-bold text-xl">
+                        {PriceData.find((d) => d.id === dong.building)?.name}
+                      </span>
+                      을{" "}
+                      <span className="text-xl font-bold text-red-500 underline">
+                        인수
+                      </span>
+                      하시겠습니까?
+                    </p>
+                    <button
+                      onClick={() => {
+                        purchaseDong(dong.building);
+                      }}
+                      className="rounded px-4 py-2 bg-red-400 text-white hover:brightness-90 my-2"
+                    >
+                      인수하기
+                    </button>
+                  </Flex>
+                )}
+              </div>
+            ))}
       </BottomModal>
       <Modal
         title={`🏠 ${purchaseModal?.name}${
           purchaseModal?.name === "랜드마크" ? "를" : "을"
         } 구매하시겠습니까?`}
         visible={!!purchaseModal}
-        onConfirm={purchaseDong}
+        onConfirm={() => purchaseDong(purchaseModal?.id ?? 0)}
         onCancel={cancelPurchase}
         confirmText="확인"
         cancelText="취소"

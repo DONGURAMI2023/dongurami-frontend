@@ -22,6 +22,7 @@ export interface IPolygon {
 }
 
 export interface IPriceData {
+  id: number;
   image: any;
   name: string;
   multiplier: number;

@@ -6,6 +6,7 @@ import { ILoginReqInfo } from "../../model/Login";
 import kakaoImage from "../../assets/kakao_login_medium_wide.png";
 import { userState } from "pages/Store/userState";
 import { useRecoilState } from "recoil";
+import logo from "assets/logo.png";
 
 const REACT_REST_API_KEY = "3d92f7078f51f3e20afad84b56b54d79";
 const REDIRECT_URL = "http://localhost:5173/login/oauth";
@@ -47,6 +48,7 @@ export default function Login() {
       {/* {isPending && <div>Loading...</div>} */}
       <LoginContainer>
         <HeaderContainer>
+          <img className=" h-20" src={logo}></img>
           <Title>LOGIN</Title>
         </HeaderContainer>
         <MainContainer>
@@ -134,11 +136,17 @@ const LoginContainer = styled.div`
   justify-content: center;
   align-items: center;
   height: 85vh;
+  padding: 0 1rem;
+  margin: 0 auto;
 `;
 
 const HeaderContainer = styled.header`
   width: 100%;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Title = styled.h1`

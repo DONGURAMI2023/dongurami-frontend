@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 /*
 예시 : 
@@ -37,55 +37,52 @@ export const getApi = async <T>({
   return response.data;
 };
 
-export const postApi = async ({
+export const postApi = async <T>({
   url,
   requestBody,
   headers,
   params,
-}: PostApiParams): Promise<AxiosResponse> => {
+}: PostApiParams): Promise<T> => {
   const response = await axios.post(`${BACKEND_URL}${url}`, requestBody, {
     headers,
     params,
   } as AxiosRequestConfig);
 
-  return response;
+  return response.data;
 };
 
-export const putApi = async ({
+export const putApi = async <T>({
   url,
   requestBody,
   headers,
   params,
-}: PutApiParams): Promise<AxiosResponse> => {
+}: PutApiParams): Promise<T> => {
   const response = await axios.put(`${BACKEND_URL}${url}`, requestBody, {
     headers,
     params,
   } as AxiosRequestConfig);
 
-  return response;
+  return response.data;
 };
 
-export const patchApi = async ({
+export const patchApi = async <T>({
   url,
   requestBody,
   headers,
   params,
-}: PutApiParams): Promise<AxiosResponse> => {
+}: PutApiParams): Promise<T> => {
   const response = await axios.patch(`${BACKEND_URL}${url}`, requestBody, {
     headers,
     params,
   } as AxiosRequestConfig);
 
-  return response;
+  return response.data;
 };
 
-export const deleteApi = async ({
-  url,
-  headers,
-}: ApiParams): Promise<AxiosResponse> => {
+export const deleteApi = async <T>({ url, headers }: ApiParams): Promise<T> => {
   const response = await axios.delete(`${BACKEND_URL}${url}`, {
     headers,
   } as AxiosRequestConfig);
 
-  return response;
+  return response.data;
 };
