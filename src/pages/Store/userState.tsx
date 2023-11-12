@@ -13,6 +13,7 @@ import { recoilPersist } from "recoil-persist";
 const { persistAtom } = recoilPersist();
 
 interface IUserState {
+  id: number;
   point: number;
   name: string;
   email: string;

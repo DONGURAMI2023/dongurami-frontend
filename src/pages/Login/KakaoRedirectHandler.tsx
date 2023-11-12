@@ -46,8 +46,10 @@ const KakaoRedirectHandler = () => {
         params: { code: code },
       });
       // 로그인 성공
+
       if (response) {
         setUserState({
+          id: response.id,
           name: response.username,
           email: response.email,
           imageUrl: response.profile_image,

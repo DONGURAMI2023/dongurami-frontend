@@ -167,8 +167,6 @@ const Map: React.FC = () => {
         // 커스텀 오버레이를 생성합니다
         const customOverlay = new kakao.maps.CustomOverlay({
           position: position,
-          xAnchor: 0,
-          yAnchor: 0,
           content: createOverlayComponent(
             dong.building as TypeBuilding,
             dong?.user?.profile_image ?? DEFAULT_IMAGE

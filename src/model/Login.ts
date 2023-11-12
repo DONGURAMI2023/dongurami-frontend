@@ -4,6 +4,7 @@ export interface ILoginReqInfo {
 }
 
 export interface IUserData {
+  id: number;
   email: string;
   username: string;
   profile_image: string;
