@@ -27,7 +27,6 @@ const Badge = () => {
           url: `users/${user.id}/profile`,
         });
         if (response) {
-          console.log(response);
           setBadgeDataArray(response.badges);
         }
       } catch (e) {

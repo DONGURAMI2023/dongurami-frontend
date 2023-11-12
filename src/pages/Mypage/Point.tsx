@@ -80,8 +80,6 @@ const Point = () => {
     getPoint();
   }, []);
 
-  console.log(temp);
-
   const handleClickCancelBtn = () => {
     navigate(-1);
   };
