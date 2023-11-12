@@ -13,6 +13,7 @@ import flagImage from "../../assets/icon_flag.svg";
 import towerImage from "../../assets/icon_tower.svg";
 import castleImage from "../../assets/icon_castle.svg";
 import buildingImage from "../../assets/icon_building.svg";
+import logo from "../../assets/logo.png";
 import Svg from "components/Svg";
 import {
   IPolygon,
@@ -27,6 +28,10 @@ import { useRecoilState } from "recoil";
 import { buildingImageMap } from "utils/map";
 import Flex from "components/Flex";
 import ImgRounded from "components/ImgRounded";
+import CustomNav from "components/CustomNav";
+import IconButton from "components/IconButton";
+import { IoHelp, IoPersonCircleOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -45,6 +50,8 @@ const PriceData: IPriceData[] = [
 const { kakao } = window;
 
 const Map: React.FC = () => {
+  const navigate = useNavigate();
+
   const [map, setMap] = useState<null | any>(null);
   const [bottomModal, setBottomModal] = useState<boolean>(false);
   const [purchaseModal, setPurchaseModal] = useState<
@@ -336,7 +343,25 @@ const Map: React.FC = () => {
 
   return (
     <MapContainer>
-      <NavBar />
+      <CustomNav
+        leftComponent={
+          <Flex type="horizontalCenter" className="gap-3">
+            <IconButton onClick={() => navigate("/mypage")}>
+              <IoPersonCircleOutline size="24" />
+            </IconButton>
+          </Flex>
+        }
+        centerComponent={
+          <Flex type="horizontalCenter" className="gap-3 h-full">
+            <img className="h-full scale-125" src={logo}></img>
+          </Flex>
+        }
+        rightComponent={
+          <IconButton onClick={() => navigate("/guide")}>
+            <IoHelp size="24" />
+          </IconButton>
+        }
+      />
       <div
         id="map"
         style={{
