@@ -20,12 +20,7 @@ const BottomModal: React.FC<BottomModalProps> = ({ children, visible }) => {
 
   if (!animate && !localVisible) return null;
 
-  return (
-    <ModalContainer disappear={!visible}>
-      <ModalBar></ModalBar>
-      {children}
-    </ModalContainer>
-  );
+  return <ModalContainer disappear={!visible}>{children}</ModalContainer>;
 };
 
 const slideUp = keyframes`
@@ -68,14 +63,6 @@ const ModalContainer = styled.div<{ disappear?: boolean }>`
   animation-timing-function: ease-out;
   animation-name: ${({ disappear }) => (disappear ? slideDown : slideUp)};
   animation-fill-mode: forwards;
-`;
-
-const ModalBar = styled.div`
-  width: 15%;
-  height: 0.4rem;
-  margin-top: 0.5rem;
-  border-radius: 1em;
-  background-color: #e9ecef;
 `;
 
 export default BottomModal;
