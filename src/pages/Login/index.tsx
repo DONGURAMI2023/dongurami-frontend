@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { ILoginReqInfo } from "../../model/Login";
 // import { useQuery } from "@tanstack/react-query";
@@ -15,6 +16,8 @@ const kakaoURL =
   "&response_type=code";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const INITIAL_LOGIN_REQ_INFO: ILoginReqInfo = {
     username: "",
     password: "",
@@ -29,19 +32,13 @@ export default function Login() {
     window.location.href = kakaoURL;
   };
 
-  // const fetchLogin = async () => {
-  //   // API 호출 또는 데이터 가져오기 로직
-  //   const response = await fetch("https://api.example.com/data");
-  //   const data = await response.json();
-  //   return data;
-  // };
-
-  // const { isPending, isError, data, error } = useQuery<string>({
-  //   queryKey: ["login"],
-  //   queryFn: fetchLogin,
-  // });
-
-  // console.log("data", data);
+  // token있으면 로그인 상태로
+  useEffect(() => {
+    const TOKEN = localStorage.getItem("token");
+    if (TOKEN) {
+      navigate("/map");
+    }
+  }, [navigate]);
 
   return (
     <>
