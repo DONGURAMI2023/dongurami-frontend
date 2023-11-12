@@ -7,7 +7,7 @@ import styled from "styled-components";
 import { DEAGU_CENTER_POINT } from "../../consts/map";
 import BottomModal from "../../components/BottomModal";
 import Modal from "../../components/Modal";
-import { getApi } from "utils/http";
+import { getApi, postApi, putApi } from "utils/http";
 import houseImage from "../../assets/icon_house.svg";
 import flagImage from "../../assets/icon_flag.svg";
 import towerImage from "../../assets/icon_tower.svg";
@@ -22,6 +22,8 @@ import {
   IAreaData,
   TypeBuilding,
 } from "model/Map";
+import { userState } from "pages/Store/userState";
+import { useRecoilState } from "recoil";
 
 declare global {
   interface Window {
@@ -30,11 +32,11 @@ declare global {
 }
 
 const PriceData: IPriceData[] = [
-  { image: flagImage, name: "땅", multiplier: 1.0 },
-  { image: houseImage, name: "주택", multiplier: 1.2 },
-  { image: buildingImage, name: "빌딩", multiplier: 1.4 },
-  { image: castleImage, name: "궁전", multiplier: 1.6 },
-  { image: towerImage, name: "랜드마크", multiplier: 1.8 },
+  { image: flagImage, name: "땅", multiplier: 1.0, id: 0 },
+  { image: houseImage, name: "주택", multiplier: 1.2, id: 1 },
+  { image: buildingImage, name: "빌딩", multiplier: 1.4, id: 2 },
+  { image: castleImage, name: "궁전", multiplier: 1.6, id: 4 },
+  { image: towerImage, name: "랜드마크", multiplier: 1.8, id: 8 },
 ];
 
 const { kakao } = window;
@@ -49,6 +51,7 @@ const Map: React.FC = () => {
   const [notPurchasedDongData, setNotPurchasedDongData] = useState<IAreaData[]>(
     []
   );
+  const [user] = useRecoilState(userState);
   const [clickedDong, setClickedDong] = useState<any>(null);
   const [detailAddr, setDetailAddr] = useState<string>("");
   const polygons = useRef<IPolygon[]>([]);
@@ -56,7 +59,9 @@ const Map: React.FC = () => {
   // 주소-좌표 변환 객체를 생성합니다
   const geocoder = new kakao.maps.services.Geocoder();
 
-  const showPurchaseModal = (data: IPriceData & { price: number }) => {
+  const showPurchaseModal = (
+    data: IPriceData & { price: number; building: number }
+  ) => {
     if (!purchaseModal) {
       setPurchaseModal(data);
     }
@@ -68,7 +73,21 @@ const Map: React.FC = () => {
     }
   };
 
-  const purchaseDong = () => {
+  const purchaseDong = async () => {
+    try {
+      const { result } = await putApi<{ result: string; message: string }>({
+        url: `/area/${clickedDong}/take/${user.id}`,
+        requestBody: {
+          building: purchaseModal?.id,
+        },
+      });
+      if (result === "success") {
+        alert("성공적으로 구매하였습니다.");
+        window.location.reload();
+      } else alert("구매에 실패하였습니다.");
+    } catch (e) {
+      alert("구매중 에러가 발생했습니다.");
+    }
     closePurchaseModal();
   };
 
@@ -328,6 +347,7 @@ const Map: React.FC = () => {
                             showPurchaseModal({
                               ...item,
                               price: Math.floor(dong.price * item.multiplier),
+                              building: item.id,
                             })
                           }
                         >
@@ -346,7 +366,7 @@ const Map: React.FC = () => {
           purchaseModal?.name === "랜드마크" ? "를" : "을"
         } 구매하시겠습니까?`}
         visible={!!purchaseModal}
-        onConfirm={purchaseDong}
+        onConfirm={() => purchaseDong(purchaseModal)}
         onCancel={cancelPurchase}
         confirmText="확인"
         cancelText="취소"
