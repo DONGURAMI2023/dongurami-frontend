@@ -1,11 +1,13 @@
 // import { Address, Restaurant } from "./model/Restaurant";
 // import { useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Login from "./pages/Login";
 import Map from "./pages/Map";
 import Guide from "./pages/Guide";
 import Mypage from "./pages/Mypage";
 import KakaoRedirectHandler from "./pages/Login/KakaoRedirectHandler";
+import Point from "pages/Mypage/Point";
+import Badge from "pages/Mypage/badge";
 
 // const data: Restaurant = {
 //   name: "누나네",
@@ -31,16 +33,16 @@ const App: React.FC = () => {
   // };
 
   return (
-    <div id="App">
-      <Routes>
-        <Route path="/" element={<Test />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/login/oauth" element={<KakaoRedirectHandler />} />
-        <Route path="/guide" element={<Guide />} />
-        <Route path="/map" element={<Map />} />
-        <Route path="/mypage" element={<Mypage />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/" element={<Test />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/login/oauth" element={<KakaoRedirectHandler />} />
+      <Route path="/guide" element={<Guide />} />
+      <Route path="/map" element={<Map />} />
+      <Route path="/mypage" element={<Mypage />} />
+      <Route path="/mypage/point" element={<Point />} />
+      <Route path="/mypage/badge" element={<Badge />} />
+    </Routes>
   );
 };
 

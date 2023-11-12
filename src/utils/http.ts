@@ -15,7 +15,7 @@ const BACKEND_URL =
 interface ApiParams {
   url: string;
   headers?: Record<string, string>;
-  params?: Record<string, string | number>;
+  params?: any;
 }
 
 interface PostApiParams extends ApiParams {
