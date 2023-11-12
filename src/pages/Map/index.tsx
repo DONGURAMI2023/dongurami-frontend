@@ -30,11 +30,11 @@ declare global {
 }
 
 const PriceData: IPriceData[] = [
-  { image: flagImage, name: "땅", multiplier: 1.0 },
-  { image: houseImage, name: "주택", multiplier: 1.2 },
-  { image: buildingImage, name: "빌딩", multiplier: 1.4 },
-  { image: castleImage, name: "궁전", multiplier: 1.6 },
-  { image: towerImage, name: "랜드마크", multiplier: 1.8 },
+  { image: flagImage, name: "땅", multiplier: 1.0, id: 0 },
+  { image: houseImage, name: "주택", multiplier: 1.2, id: 1 },
+  { image: buildingImage, name: "빌딩", multiplier: 1.4, id: 2 },
+  { image: castleImage, name: "궁전", multiplier: 1.6, id: 4 },
+  { image: towerImage, name: "랜드마크", multiplier: 1.8, id: 8 },
 ];
 
 const { kakao } = window;

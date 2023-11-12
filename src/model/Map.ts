@@ -25,6 +25,7 @@ export interface IPriceData {
   image: any;
   name: string;
   multiplier: number;
+  id: number;
 }
 
 export type TypeCoordinate = [number, number];
