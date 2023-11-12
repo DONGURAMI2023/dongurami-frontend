@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../components/NavBar";
@@ -13,6 +14,7 @@ import flagImage from "../../assets/icon_flag.svg";
 import towerImage from "../../assets/icon_tower.svg";
 import castleImage from "../../assets/icon_castle.svg";
 import buildingImage from "../../assets/icon_building.svg";
+import Svg from "components/Svg";
 
 type TypeCoordinate = [number, number];
 interface IDong {
@@ -56,27 +58,8 @@ const Map: React.FC = () => {
 	const [clickedDong, setClickedDong] = useState<any>(null);
 	const polygons = useRef<any[]>([]);
 
-	// 구입된 동 데이터를 배열로 저장
-
 	// 주소-좌표 변환 객체를 생성합니다
 	const geocoder = new kakao.maps.services.Geocoder();
-
-	// dondData 가져오기
-	// const getDongData = async () => {
-	//   const { isPending, isError, data, error } = useQuery({
-	//     queryKey: ["dongData"],
-	//     queryFn: () => getApi({ url: "area" }),
-	//   });
-	//   if (data) {
-	//     setNotPurchasedDongData(
-	//       data.result.filter((dong: any) => dong.user === null)
-	//     );
-	//   }
-	// };
-
-	// useEffect(() => {
-	//   getDongData();
-	// }, []);
 
 	const getDongData = async () => {
 		try {
@@ -149,21 +132,18 @@ const Map: React.FC = () => {
 
 			const applyClickListener = (polygon: any) => {
 				kakao.maps.event.addListener(polygon, "click", function (e: any) {
+					if (!bottomModal) setDetailAddr("");
 					searchDetailAddrFromCoords(
 						e.latLng,
 						function (result: any, status: any) {
 							if (status === kakao.maps.services.Status.OK) {
-								setTimeout(() => {
-									setDetailAddr(
-										(_) =>
-											result[0]?.address?.address_name?.split(" ")[2] ??
-											"금은동"
-									);
-								}, 250);
+								setDetailAddr(
+									(_) =>
+										result[0]?.address?.address_name?.split(" ")[2] ?? "금은동"
+								);
 							}
 						}
 					);
-
 					kakao.maps.event.preventMap();
 					setBottomModal((prev) => !prev);
 				});
@@ -218,7 +198,7 @@ const Map: React.FC = () => {
 			applyClickMapListener();
 			drawDongs();
 		}
-	}, [map, bottomModal]);
+	}, [map, bottomModal, searchDetailAddrFromCoords]);
 
 	return (
 		<MapContainer>
@@ -239,7 +219,16 @@ const Map: React.FC = () => {
 
 			{/* modals */}
 			<BottomModal visible={bottomModal}>
-				<DongName>{detailAddr}</DongName>
+				<NameWrapper>
+					{detailAddr ? (
+						detailAddr
+					) : (
+						<Svg
+							icon="icon_loading_gif"
+							className="max-w-[3rem] max-h-[3rem]"
+						/>
+					)}
+				</NameWrapper>
 				{notPurchasedDongData.map((dong) => (
 					<div key={dong.id}>
 						{dong.id === clickedDong && (
@@ -292,7 +281,7 @@ const Button = styled.button`
 	font-weight: 600;
 `;
 
-const DongName = styled.div`
+const NameWrapper = styled.div`
 	margin-top: 1rem;
 	font-weight: 600;
 	font-size: 1.2rem;
