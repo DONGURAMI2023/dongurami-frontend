@@ -44,6 +44,8 @@ const App: React.FC = () => {
 };
 
 const Test = () => {
+  return <Navigate to="/login" />;
+
   return (
     <div className="flex flex-col gap-10 text-2xl font-bold w-full items-center p-40">
       <Link to="/login">login</Link>
