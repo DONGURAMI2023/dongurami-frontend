@@ -2,12 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../components/NavBar";
-import { DONG_DATA } from "../../consts/map";
+import { CENTER_POINTS, DEFAULT_IMAGE, DONG_DATA } from "../../consts/map";
 import styled from "styled-components";
 import { DEAGU_CENTER_POINT } from "../../consts/map";
 import BottomModal from "../../components/BottomModal";
 import Modal from "../../components/Modal";
-import { useQuery } from "@tanstack/react-query";
 import { getApi } from "utils/http";
 import houseImage from "../../assets/icon_house.svg";
 import flagImage from "../../assets/icon_flag.svg";
@@ -20,6 +19,8 @@ import {
   IPolygonData,
   IPolygonCreateData,
   IPriceData,
+  IAreaData,
+  TypeBuilding,
 } from "model/Map";
 
 declare global {
@@ -38,24 +39,18 @@ const PriceData: IPriceData[] = [
 
 const { kakao } = window;
 
-type TypeUser = any;
-interface IAreaData {
-  id: number;
-  user: TypeUser | null;
-  price: number;
-  building: number;
-}
-
 const Map: React.FC = () => {
   const [map, setMap] = useState<null | any>(null);
   const [bottomModal, setBottomModal] = useState<boolean>(false);
   const [purchaseModal, setPurchaseModal] = useState<
     (IPriceData & { price: number }) | null
   >(null);
-  const [purchasedDongData, setPurchasedDongData] = useState<any[]>([]);
+  const [purchasedDongData, setPurchasedDongData] = useState<IAreaData[]>([]);
+  const [notPurchasedDongData, setNotPurchasedDongData] = useState<IAreaData[]>(
+    []
+  );
   const [clickedDong, setClickedDong] = useState<any>(null);
   const [detailAddr, setDetailAddr] = useState<string>("");
-  const [notPurchasedDongData, setNotPurchasedDongData] = useState<any[]>([]);
   const polygons = useRef<IPolygon[]>([]);
 
   // 주소-좌표 변환 객체를 생성합니다
@@ -112,15 +107,85 @@ const Map: React.FC = () => {
         DEAGU_CENTER_POINT.LATITUDE,
         DEAGU_CENTER_POINT.LONGITUDE
       ),
-      level: 7,
+      level: 5,
     };
 
     const createdMap = new window.kakao.maps.Map(container, options);
     setMap(createdMap);
   }, []);
 
+  const getDongPosition = (id: number): { lat: number; lng: number } => {
+    const dong = CENTER_POINTS.find((point) => point.dongNumber === id);
+    const lat = dong?.lat ?? DEAGU_CENTER_POINT.LATITUDE;
+    const lng = dong?.lng ?? DEAGU_CENTER_POINT.LONGITUDE;
+    return { lat, lng };
+  };
+
   // 지도에 폴리곤으로 동 구분
   useEffect(() => {
+    console.log("purchasedDongData", purchasedDongData);
+
+    const drawOverlays = () => {
+      const createOverlayComponent = (
+        buildingType: TypeBuilding,
+        imageUrl: string = DEFAULT_IMAGE
+      ) => {
+        const buildingImage =
+          buildingType === 0
+            ? "icon_flag.svg"
+            : buildingType === 1
+            ? "icon_house.svg"
+            : buildingType === 2
+            ? "icon_building.svg"
+            : buildingType === 4
+            ? "icon_castle.svg"
+            : "icon_tower.svg";
+
+        return `
+        <div class="flex flex-col items-center w-[68px] gap-1 h-auto scale-[65%]">
+            <img class='w-[40px] h-[40px]' src="${buildingImage}">
+            </img>
+            <div class="w-[68px] h-[68px] flex-col items-center flex rounded-full bg-white border border-gray-300 overflow-clip p-[2px] shadow-md z-0 cursor-pointer">
+              <div class="flex-col items-center flex w-full h-full rounded-full p-[2px] z-10 bg-gradient-to-tr from-yellow-400 via-red-500 to-pink-500">
+                <div class="flex-col w-full h-full items-center flex rounded-full bg-white p-[2px] z-20">
+                <img class="w-[100px] h-[100px] rounded-full z-30" src="${imageUrl}" />
+                </div>
+            </div>
+            </div>
+          </div>
+        `;
+      };
+
+      purchasedDongData.map((dong) => {
+        const dongPosition = getDongPosition(dong.id);
+
+        const position = new kakao.maps.LatLng(
+          dongPosition.lat,
+          dongPosition.lng
+        );
+
+        // 커스텀 오버레이를 생성합니다
+        const customOverlay = new kakao.maps.CustomOverlay({
+          position: position,
+          xAnchor: 0,
+          yAnchor: 0,
+          content: createOverlayComponent(
+            dong.building as TypeBuilding,
+            dong?.user?.profile_image ?? DEFAULT_IMAGE
+          ),
+        });
+
+        // 커스텀 오버레이를 지도에 표시합니다
+        customOverlay.setMap(map);
+      });
+
+      return;
+      const position = new kakao.maps.LatLng(
+        DEAGU_CENTER_POINT.LATITUDE,
+        DEAGU_CENTER_POINT.LONGITUDE
+      );
+    };
+
     const drawDongs = () => {
       const applyMouseoverListener = (polygon: any) => {
         kakao.maps.event.addListener(polygon, "mouseover", function () {
@@ -218,6 +283,7 @@ const Map: React.FC = () => {
     if (map) {
       applyClickMapListener();
       drawDongs();
+      drawOverlays();
     }
   }, [map, bottomModal, searchDetailAddrFromCoords]);
 
@@ -303,6 +369,14 @@ const Map: React.FC = () => {
           입니다.
         </ModalContainer>
       </Modal>
+
+      {/* <img
+        src={
+          "https://media.licdn.com/dms/image/D4D03AQF54ZBQBxQFmw/profile-displayphoto-shrink_100_100/0/1691425036898?e=1704931200&v=beta&t=0mAikxLqpBM6a8kqitQ-wNW9WXMMB8RnFdPvlTZkO4M"
+        }
+        className="w-full h-full object-cover rounded-full"
+        alt="flag"
+      /> */}
     </MapContainer>
   );
 };

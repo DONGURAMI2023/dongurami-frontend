@@ -26,3 +26,24 @@ export interface IPriceData {
   name: string;
   multiplier: number;
 }
+
+export type TypeCoordinate = [number, number];
+export interface IDongData {
+  dongNumber: number;
+  coordinates: TypeCoordinate[];
+}
+
+export type TypeUser = {
+  id: number;
+  email: string;
+  username: string;
+  profile_image: string;
+};
+export interface IAreaData {
+  id: number;
+  user: TypeUser | null;
+  price: number;
+  building: number;
+}
+
+export type TypeBuilding = 0 | 1 | 2 | 4 | 8;
