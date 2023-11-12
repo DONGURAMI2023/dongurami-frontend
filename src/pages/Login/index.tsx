@@ -1,9 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { ILoginReqInfo } from "../../model/Login";
-import Svg from "../../components/Svg";
-import KakaoLogin from "./KakaoLogin";
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 import kakaoImage from "../../assets/kakao_login_medium_wide.png";
 
 const REACT_REST_API_KEY = "3d92f7078f51f3e20afad84b56b54d79";
@@ -31,23 +29,23 @@ export default function Login() {
     window.location.href = kakaoURL;
   };
 
-  const fetchLogin = async () => {
-    // API 호출 또는 데이터 가져오기 로직
-    const response = await fetch("https://api.example.com/data");
-    const data = await response.json();
-    return data;
-  };
+  // const fetchLogin = async () => {
+  //   // API 호출 또는 데이터 가져오기 로직
+  //   const response = await fetch("https://api.example.com/data");
+  //   const data = await response.json();
+  //   return data;
+  // };
 
-  const { isPending, isError, data, error } = useQuery<string>({
-    queryKey: ["login"],
-    queryFn: fetchLogin,
-  });
+  // const { isPending, isError, data, error } = useQuery<string>({
+  //   queryKey: ["login"],
+  //   queryFn: fetchLogin,
+  // });
 
-  console.log("data", data);
+  // console.log("data", data);
 
   return (
     <>
-      {isPending && <div>Loading...</div>}
+      {/* {isPending && <div>Loading...</div>} */}
       <LoginContainer>
         <HeaderContainer>
           <Title>LOGIN</Title>
