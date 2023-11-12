@@ -234,6 +234,10 @@ const MainContainer = styled.main`
   flex-direction: column;
   justify-content: flex-start;
   gap: 1.5rem;
+  overflow-y: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export default Mypage;

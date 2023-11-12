@@ -136,6 +136,8 @@ const LoginContainer = styled.div`
   justify-content: center;
   align-items: center;
   height: 85vh;
+  padding: 0 1rem;
+  margin: 0 auto;
 `;
 
 const HeaderContainer = styled.header`
