@@ -15,7 +15,12 @@ import towerImage from "../../assets/icon_tower.svg";
 import castleImage from "../../assets/icon_castle.svg";
 import buildingImage from "../../assets/icon_building.svg";
 import Svg from "components/Svg";
-import { IPolygon, IPolygonData, IPolygonCreateData } from "model/Map";
+import {
+  IPolygon,
+  IPolygonData,
+  IPolygonCreateData,
+  IPriceData,
+} from "model/Map";
 
 declare global {
   interface Window {
@@ -23,7 +28,7 @@ declare global {
   }
 }
 
-const PriceData = [
+const PriceData: IPriceData[] = [
   { image: flagImage, name: "땅", multiplier: 1.0 },
   { image: houseImage, name: "주택", multiplier: 1.2 },
   { image: buildingImage, name: "빌딩", multiplier: 1.4 },
@@ -44,7 +49,9 @@ interface IAreaData {
 const Map: React.FC = () => {
   const [map, setMap] = useState<null | any>(null);
   const [bottomModal, setBottomModal] = useState<boolean>(false);
-  const [purchaseModal, setPurchaseModal] = useState<boolean>(false);
+  const [purchaseModal, setPurchaseModal] = useState<
+    (IPriceData & { price: number }) | null
+  >(null);
   const [purchasedDongData, setPurchasedDongData] = useState<any[]>([]);
   const [clickedDong, setClickedDong] = useState<any>(null);
   const [detailAddr, setDetailAddr] = useState<string>("");
@@ -54,10 +61,34 @@ const Map: React.FC = () => {
   // 주소-좌표 변환 객체를 생성합니다
   const geocoder = new kakao.maps.services.Geocoder();
 
+  const showPurchaseModal = (data: IPriceData & { price: number }) => {
+    if (!purchaseModal) {
+      setPurchaseModal(data);
+    }
+  };
+
+  const closePurchaseModal = () => {
+    if (purchaseModal) {
+      setPurchaseModal(null);
+    }
+  };
+
+  const purchaseDong = () => {
+    closePurchaseModal();
+  };
+
+  const cancelPurchase = () => {
+    closePurchaseModal();
+  };
+
+  function searchDetailAddrFromCoords(coords: any, callback: any) {
+    // 좌표로 법정동 상세 주소 정보를 요청합니다
+    geocoder.coord2Address(coords.getLng(), coords.getLat(), callback);
+  }
+
   const getDongData = async () => {
     try {
       const { result: areaData } = await getApi<IAreaData[]>({ url: "area" });
-
       setNotPurchasedDongData(areaData.filter((dong) => dong.user === null));
       setPurchasedDongData(
         areaData.filter((dong: IAreaData) => dong.user !== null)
@@ -85,31 +116,6 @@ const Map: React.FC = () => {
     const createdMap = new window.kakao.maps.Map(container, options);
     setMap(createdMap);
   }, []);
-
-  const showPurchaseModal = () => {
-    if (!purchaseModal) {
-      setPurchaseModal(true);
-    }
-  };
-
-  const closePurchaseModal = () => {
-    if (purchaseModal) {
-      setPurchaseModal(false);
-    }
-  };
-
-  const purchaseDong = () => {
-    closePurchaseModal();
-  };
-
-  const cancelPurchase = () => {
-    closePurchaseModal();
-  };
-
-  function searchDetailAddrFromCoords(coords: any, callback: any) {
-    // 좌표로 법정동 상세 주소 정보를 요청합니다
-    geocoder.coord2Address(coords.getLng(), coords.getLat(), callback);
-  }
 
   // 지도에 폴리곤으로 동 구분
   useEffect(() => {
@@ -259,7 +265,16 @@ const Map: React.FC = () => {
                         </Point>
                       </PriceNameContainer>
                       <ButtonContainer>
-                        <Button onClick={showPurchaseModal}>구매</Button>
+                        <Button
+                          onClick={() =>
+                            showPurchaseModal({
+                              ...item,
+                              price: Math.floor(dong.price * item.multiplier),
+                            })
+                          }
+                        >
+                          구매
+                        </Button>
                       </ButtonContainer>
                     </PriceBlock>
                   ))}
@@ -269,30 +284,50 @@ const Map: React.FC = () => {
           ))}
       </BottomModal>
       <Modal
-        title="땅을 구매 하시겠습니까?"
-        visible={purchaseModal}
+        title={`🏠 ${purchaseModal?.name}${
+          purchaseModal?.name === "랜드마크" ? "를" : "을"
+        } 구매하시겠습니까?`}
+        visible={!!purchaseModal}
         onConfirm={purchaseDong}
         onCancel={cancelPurchase}
         confirmText="확인"
         cancelText="취소"
-      ></Modal>
+      >
+        <ModalContainer>
+          구매가격은{" "}
+          <span className="font-bold underline text-red-500">
+            {purchaseModal?.price ?? 0} Point{" "}
+          </span>
+          입니다.
+        </ModalContainer>
+      </Modal>
     </MapContainer>
   );
 };
+
+const ModalContainer = styled.div`
+  width: 100%;
+  margin: 0 auto;
+`;
 
 const MapContainer = styled.div`
   /* overflow: hidden; */
 `;
 
 const Button = styled.button`
-  width: 60px;
-  height: 20px;
+  /* width: 60px; */
+  /* height: 20px; */
+  padding: 0.5rem 1.5rem;
   background-color: aliceblue;
   border: none;
   outline: none;
   cursor: pointer;
   font-size: 0.2;
   font-weight: 600;
+  border-radius: 6px;
+  :hover {
+    filter: brightness(0.9);
+  }
 `;
 
 const NameWrapper = styled.div`
@@ -303,7 +338,6 @@ const NameWrapper = styled.div`
 
 const PriceContainer = styled.div`
   width: 100%;
-  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -344,16 +378,19 @@ const ButtonContainer = styled.div`
 `;
 
 const PriceBlock = styled.div`
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
   height: 50px;
   width: 400px;
-  &:not(:last-child) {
-    border-bottom: 1.5px solid lightgray;
-  }
-  padding-bottom: 1rem;
   display: flex;
 
   justify-content: center;
-  margin: 0.8rem 0.5rem;
+  &:not(:last-child) {
+    border-bottom: 1.5px solid lightgray;
+  }
+  &:hover {
+    background-color: #a3a3a36a;
+  }
 `;
 
 export default Map;
