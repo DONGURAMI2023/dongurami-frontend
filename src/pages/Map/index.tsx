@@ -123,8 +123,6 @@ const Map: React.FC = () => {
 
   // 지도에 폴리곤으로 동 구분
   useEffect(() => {
-    console.log("purchasedDongData", purchasedDongData);
-
     const drawOverlays = () => {
       const createOverlayComponent = (
         buildingType: TypeBuilding,
@@ -176,12 +174,6 @@ const Map: React.FC = () => {
         // 커스텀 오버레이를 지도에 표시합니다
         customOverlay.setMap(map);
       });
-
-      return;
-      const position = new kakao.maps.LatLng(
-        DEAGU_CENTER_POINT.LATITUDE,
-        DEAGU_CENTER_POINT.LONGITUDE
-      );
     };
 
     const drawDongs = () => {
