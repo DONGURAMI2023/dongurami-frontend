@@ -83,12 +83,12 @@ const Map: React.FC = () => {
     }
   };
 
-  const purchaseDong = async () => {
+  const purchaseDong = async (buildingId: number) => {
     try {
       const { result } = await putApi<{ result: string; message: string }>({
         url: `/area/${clickedDong}/take/${user.id}`,
         requestBody: {
-          building: purchaseModal?.id,
+          building: buildingId,
         },
       });
       if (result === "success") {
@@ -499,8 +499,7 @@ const Map: React.FC = () => {
                     </p>
                     <button
                       onClick={() => {
-                        alert("인수하였습니다.");
-                        window.location.reload();
+                        purchaseDong(dong.building);
                       }}
                       className="rounded px-4 py-2 bg-red-400 text-white hover:brightness-90 my-2"
                     >
@@ -516,7 +515,7 @@ const Map: React.FC = () => {
           purchaseModal?.name === "랜드마크" ? "를" : "을"
         } 구매하시겠습니까?`}
         visible={!!purchaseModal}
-        onConfirm={() => purchaseDong()}
+        onConfirm={() => purchaseDong(purchaseModal?.id ?? 0)}
         onCancel={cancelPurchase}
         confirmText="확인"
         cancelText="취소"
