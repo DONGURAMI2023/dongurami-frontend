@@ -24,12 +24,12 @@ interface PostApiParams extends ApiParams {
 
 interface PutApiParams extends PostApiParams {}
 
-export const getApi = async ({
+export const getApi = async <T>({
   url,
   headers,
   params,
-}: ApiParams): Promise<any> => {
-  const response = await axios.get(`${BACKEND_URL}${url}`, {
+}: ApiParams): Promise<{ result: T }> => {
+  const response = await axios.get<{ result: T }>(`${BACKEND_URL}${url}`, {
     headers,
     params,
   } as AxiosRequestConfig);
