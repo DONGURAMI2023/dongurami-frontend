@@ -163,8 +163,10 @@ const Mypage = ({}: IMyPageProps) => {
                       }
                     </p>
                     <p className="text-base font-light leading-none">
-                      {PriceData.find((dong) => dong.id === area.building)!
-                        .multiplier * area.price}
+                      {Math.floor(
+                        PriceData.find((dong) => dong.id === area.building)!
+                          .multiplier * area.price
+                      )}
                       Point
                     </p>
                   </Flex>

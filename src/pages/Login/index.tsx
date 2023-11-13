@@ -9,7 +9,7 @@ import { useRecoilState } from "recoil";
 import logo from "assets/logo.png";
 
 const REACT_REST_API_KEY = "3d92f7078f51f3e20afad84b56b54d79";
-const REDIRECT_URL = "http://city-marble.com/login/oauth";
+const REDIRECT_URL = "http://localhost:5173/login/oauth";
 
 const kakaoURL =
   "https://kauth.kakao.com/oauth/authorize?client_id=" +
